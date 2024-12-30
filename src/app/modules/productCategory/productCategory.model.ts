@@ -7,6 +7,9 @@ const productCategorySchema = new Schema<TProductCategory>(
       type: String,
       required: true,
     },
+    logo: {
+      type: String,
+    },
     isActive: {
       type: Boolean,
       default: true,

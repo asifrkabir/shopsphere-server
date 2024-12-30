@@ -7,6 +7,7 @@ import { ProductCategory } from "./productCategory.model";
 import { getExistingProductCategoryById } from "./productCategory.utils";
 import mongoose from "mongoose";
 import { ProductService } from "../product/product.service";
+import { TImageFiles } from "../../interface/image.interface";
 
 const getProductCategoryById = async (id: string) => {
   const result = await ProductCategory.findOne({ _id: id, isActive: true });
@@ -34,7 +35,16 @@ const getAllProductCategories = async (query: Record<string, unknown>) => {
   };
 };
 
-const createProductCategory = async (payload: TProductCategory) => {
+const createProductCategory = async (
+  payload: TProductCategory,
+  images: TImageFiles
+) => {
+  const { logos } = images;
+
+  if (logos && logos.length > 0) {
+    payload.logo = logos[0]?.path;
+  }
+
   const result = await ProductCategory.create(payload);
 
   return result;
@@ -42,12 +52,23 @@ const createProductCategory = async (payload: TProductCategory) => {
 
 const updateProductCategory = async (
   id: string,
-  payload: Partial<TProductCategory>
+  payload: Partial<TProductCategory>,
+  images: TImageFiles
 ) => {
   const existingProductCategory = await getExistingProductCategoryById(id);
 
   if (!existingProductCategory) {
     throw new AppError(httpStatus.NOT_FOUND, "Product Category not found");
+  }
+
+  const { logos } = images;
+
+  // New Logo
+  if (logos && logos.length > 0) {
+    payload.logo = logos[0]?.path;
+  } else if (payload.logo === null) {
+    // Remove Logo
+    payload.logo = "";
   }
 
   const result = await ProductCategory.findOneAndUpdate({ _id: id }, payload, {

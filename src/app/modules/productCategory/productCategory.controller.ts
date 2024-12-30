@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { ProductCategoryService } from "./productCategory.service";
+import { TImageFiles } from "../../interface/image.interface";
 
 const getProductCategoryById = catchAsync(async (req, res) => {
   const { id } = req.params;
@@ -50,7 +51,10 @@ const getAllProductCategories = catchAsync(async (req, res) => {
 });
 
 const createProductCategory = catchAsync(async (req, res) => {
-  const result = await ProductCategoryService.createProductCategory(req.body);
+  const result = await ProductCategoryService.createProductCategory(
+    req.body,
+    req.files as TImageFiles
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
@@ -65,7 +69,8 @@ const updateProductCategory = catchAsync(async (req, res) => {
 
   const result = await ProductCategoryService.updateProductCategory(
     id,
-    req.body
+    req.body,
+    req.files as TImageFiles
   );
 
   sendResponse(res, {
