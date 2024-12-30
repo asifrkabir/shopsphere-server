@@ -276,6 +276,9 @@ const getAllProductsForFeed = async (
         rating: {
           $avg: { $map: { input: "$reviews.rating", as: "r", in: "$$r" } },
         },
+        numOfRatings: {
+          $size: "$reviews",
+        },
       },
     },
     {
