@@ -264,6 +264,21 @@ const getAllProductsForFeed = async (
       },
     },
     {
+      $lookup: {
+        from: "reviews",
+        localField: "_id",
+        foreignField: "product",
+        as: "reviews",
+      },
+    },
+    {
+      $addFields: {
+        rating: {
+          $avg: { $map: { input: "$reviews.rating", as: "r", in: "$$r" } },
+        },
+      },
+    },
+    {
       $addFields: {
         isFollowed: {
           $cond: {
@@ -282,11 +297,6 @@ const getAllProductsForFeed = async (
         createdAt: -1,
       },
     },
-    // {
-    //   $project: {
-    //     isFollowed: 0,
-    //   },
-    // },
     {
       $unwind: {
         path: "$shop",
