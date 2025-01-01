@@ -11,23 +11,74 @@ import mongoose from "mongoose";
 import { FollowService } from "../follow/follow.service";
 import { ProductService } from "../product/product.service";
 import { PRODUCT_STATUS_ENUM } from "../product/product.constant";
+import { Product } from "../product/product.model";
 
 const getShopById = async (id: string) => {
-  const result = await Shop.findOne({ _id: id, isActive: true });
+  const result = await Shop.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(id), isActive: true } },
+    {
+      $lookup: {
+        from: "products",
+        localField: "_id",
+        foreignField: "shop",
+        as: "products",
+      },
+    },
+    {
+      $addFields: {
+        numOfProducts: {
+          $size: {
+            $filter: {
+              input: "$products",
+              as: "product",
+              cond: { $eq: ["$$product.isActive", true] },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        products: 0,
+      },
+    },
+  ]);
 
-  return result;
+  return result.length > 0 ? result[0] : null;
 };
 
 const getAllShops = async (query: Record<string, unknown>) => {
-  const postQuery = new QueryBuilder(Shop.find({ isActive: true }).populate("owner"), query)
+  const shopQuery = new QueryBuilder(
+    Shop.find({ isActive: true }).populate("owner"),
+    query
+  )
     .search(shopSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const result = await postQuery.modelQuery;
-  const meta = await postQuery.countTotal();
+  const shops = await shopQuery.modelQuery;
+  const meta = await shopQuery.countTotal();
+
+  const shopIds = shops.map((shop) => shop._id);
+  const productCounts = await Product.aggregate([
+    { $match: { shop: { $in: shopIds }, isActive: true } },
+    { $group: { _id: "$shop", count: { $sum: 1 } } },
+  ]);
+
+  const productCountMap = productCounts.reduce(
+    (map, item) => {
+      map[item._id.toString()] = item.count;
+      return map;
+    },
+    {} as Record<string, number>
+  );
+
+  const result = shops.map((shop) => ({
+    ...shop.toObject(),
+    numOfProducts: productCountMap[shop._id.toString()] || 0,
+  }));
 
   return {
     meta,

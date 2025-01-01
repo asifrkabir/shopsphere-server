@@ -24,7 +24,7 @@ router.get(
 
 router.get(
   "/",
-  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
+  // auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
   ShopController.getAllShops
 );
 
