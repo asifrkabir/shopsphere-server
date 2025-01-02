@@ -9,6 +9,7 @@ import { ReviewRoutes } from "../modules/review/review.route";
 import { ShopRoutes } from "../modules/shop/shop.route";
 import { UserRoutes } from "../modules/user/user.route";
 import { ProductCategoryRoutes } from "./../modules/productCategory/productCategory.route";
+import { NewsletterRoutes } from "../modules/newsletter/newsletter.route";
 
 const router = Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: "/coupons",
     route: CouponRoutes,
+  },
+  {
+    path: "/newsletter",
+    route: NewsletterRoutes,
   },
 ];
 
